@@ -167,6 +167,8 @@
       document.getElementById('add-btn').addEventListener('click', addWordToFirebase);
 
       function startGame() {
+        console.log('startGame called');
+        try {
         playerNames[0] = document.getElementById("player1").value || "Player 1";
         playerNames[1] = document.getElementById("player2").value || "Player 2";
         startSection.style.display = 'none';
@@ -174,6 +176,8 @@
       }
 
       function chooseCategory(cat) {
+        console.log('chooseCategory called with', cat);
+        try {
         currentCategory = cat;
         categorySection.style.display = 'none';
         gameSection.style.display = 'block';
@@ -191,6 +195,12 @@
             nextWord();
           })
           .catch(err => console.error(err));
+      }
+
+           } catch(e) { console.error('startGame error:', e);}    
+      }
+
+              } catch(e) { console.error('chooseCategory error:', e);}    
       }
 
       function nextWord() {
