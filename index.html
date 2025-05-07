@@ -76,7 +76,62 @@
       z-index: 1000;
     }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js">window.startGame = function () {
+  playerNames[0] = document.getElementById("player1").value || "Player 1";
+  playerNames[1] = document.getElementById("player2").value || "Player 2";
+  document.getElementById("category-section").style.display = "block";
+};
+
+window.chooseCategory = function (cat) {
+  currentCategory = cat;
+  document.getElementById("category-section").style.display = "none";
+  document.getElementById("game-section").style.display = "block";
+  gameWords = [];
+
+  db.collection("words").where("category", "==", currentCategory).get()
+    .then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        gameWords.push(doc.data());
+      });
+
+      if (gameWords.length === 0) {
+        alert("No words found in this category.");
+        document.getElementById("game-section").style.display = "none";
+        return;
+      }
+
+      nextWord();
+    })
+    .catch((error) => {
+      console.error("Error getting documents: ", error);
+    });
+};
+
+window.addWordToFirebase = function () {
+  const word = document.getElementById("new-word").value;
+  const tr = document.getElementById("new-tr").value;
+  const example = document.getElementById("new-example").value;
+  const category = document.getElementById("new-category").value;
+
+  if (!word || !tr || !example || !category) {
+    alert("Please fill all fields.");
+    return;
+  }
+
+  db.collection("words").add({ word, tr, example, category })
+    .then(() => {
+      alert("Word added successfully!");
+      document.getElementById("new-word").value = "";
+      document.getElementById("new-tr").value = "";
+      document.getElementById("new-example").value = "";
+      document.getElementById("new-category").value = "";
+    })
+    .catch((error) => {
+      console.error("Error adding document: ", error);
+      alert("Error adding word.");
+    });
+};
+</script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
 
 <script>
@@ -117,46 +172,8 @@ const db = firebase.firestore();
         return;
       }
 
-      firebase.firestore().collection("words").add({ word, tr, example, category })
-        .then(() => {
-          alert("Word added successfully!");
-          document.getElementById("new-word").value = "";
-          document.getElementById("new-tr").value = "";
-          document.getElementById("new-example").value = "";
-          document.getElementById("new-category").value = "";
-        })
-        .catch((error) => {
-          console.error("Error adding document: ", error);
-          alert("Error adding word.");
-        });
-    };
-
-    window.startGame = function () {
-      playerNames[0] = document.getElementById("player1").value || "Player 1";
-      playerNames[1] = document.getElementById("player2").value || "Player 2";
-      document.getElementById("category-section").style.display = "block";
-    };
-
-    window.chooseCategory = function (cat) {
-      currentCategory = cat;
-      document.getElementById("category-section").style.display = "none";
-      document.getElementById("game-section").style.display = "block";
-      gameWords = [];
-
-      firebase.firestore().collection("words").where("category", "==", currentCategory).get()
-        .then((querySnapshot) => {
-          querySnapshot.forEach((doc) => {
-            gameWords.push(doc.data());
-          });
-          if (gameWords.length === 0) {
-            alert("No words found in this category.");
-            return;
-          }
-          nextWord();
-        })
-        .catch((error) => {
-          console.error("Error getting documents: ", error);
-        });
+      db.collection("words").add({ word, tr, example, category })
+  
     };
 
     function nextWord() {
@@ -173,6 +190,12 @@ ${playerNames[1]}: ${scores[1]}`);
       timeLeft = 10;
       document.getElementById("timer").innerText = `⏳ ${timeLeft}`;
       timerInterval = setInterval(updateTimer, 1000);
+
+      if (gameWords.length === 0) {
+        alert("No words found in this category.");
+        document.getElementById("game-section").style.display = "none";
+        return;
+      }
 
       currentWord = gameWords[Math.floor(Math.random() * gameWords.length)];
       document.getElementById("word-box").innerText = currentWord.word;
@@ -269,7 +292,7 @@ ${playerNames[1]}: ${scores[1]}`);
       <option value="Sports">🏀 Sports</option>
       <option value="Animals">🐾 Animals</option>
     </select>
-    <button onclick="addWordToFirebase()">📤 Add Word</button>
+    <button onclick="window.addWordToFirebase()">📤 Add Word</button>
   </div>
 
   <audio id="success-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_6f5a1c3d0e.mp3"></audio>
