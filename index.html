@@ -161,6 +161,15 @@
         document.getElementById('success-sound').play();
         updateScoreboard();
         switchPlayer();
+        // Clear game UI and go back to category selection
+        gameSection.style.display = 'none';
+        categorySection.style.display = 'block';
+        document.getElementById('word-box').innerText = '';
+        document.getElementById('category-header').innerText = `Your turn: ${playerNames[currentPlayer]}, Select a Category:`;
+      } points!`;
+        document.getElementById('success-sound').play();
+        updateScoreboard();
+        switchPlayer();
         // Update header for next player
         document.getElementById('category-header').innerText = `Your turn: ${playerNames[currentPlayer]}, Select a Category:`;
         // After correct answer, return to category selection for next player
@@ -171,6 +180,15 @@
             function iDontKnow() {
         clearInterval(timerInterval);
         document.getElementById('extra-info').innerText = `${currentWord.tr} - ${currentWord.example}`;
+        switchPlayer();
+        // After wrong answer, go back to category selection
+        setTimeout(() => {
+          gameSection.style.display = 'none';
+          categorySection.style.display = 'block';
+          document.getElementById('word-box').innerText = '';
+          document.getElementById('category-header').innerText = `Your turn: ${playerNames[currentPlayer]}, Select a Category:`;
+        }, 2000);
+      } - ${currentWord.example}`;
         switchPlayer();
         // Show category selection after delay
         setTimeout(() => {
