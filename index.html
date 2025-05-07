@@ -62,7 +62,7 @@
       margin-top: 10px;
       color: #6a040f;
     }
-      #score-container {
+    #score-container {
       position: fixed;
       top: 10px;
       right: 10px;
@@ -75,213 +75,40 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       z-index: 1000;
     }
+    #start-section, #category-section, #game-section, #word-form {
+      margin-top: 20px;
+    }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js">window.startGame = function () {
-  playerNames[0] = document.getElementById("player1").value || "Player 1";
-  playerNames[1] = document.getElementById("player2").value || "Player 2";
-  document.getElementById("category-section").style.display = "block";
-};
-
-window.chooseCategory = function (cat) {
-  currentCategory = cat;
-  document.getElementById("category-section").style.display = "none";
-  document.getElementById("game-section").style.display = "block";
-  gameWords = [];
-
-  db.collection("words").where("category", "==", currentCategory).get()
-    .then((querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-        gameWords.push(doc.data());
-      });
-
-      if (gameWords.length === 0) {
-        alert("No words found in this category.");
-        document.getElementById("game-section").style.display = "none";
-        return;
-      }
-
-      nextWord();
-    })
-    .catch((error) => {
-      console.error("Error getting documents: ", error);
-    });
-};
-
-window.addWordToFirebase = function () {
-  const word = document.getElementById("new-word").value;
-  const tr = document.getElementById("new-tr").value;
-  const example = document.getElementById("new-example").value;
-  const category = document.getElementById("new-category").value;
-
-  if (!word || !tr || !example || !category) {
-    alert("Please fill all fields.");
-    return;
-  }
-
-  db.collection("words").add({ word, tr, example, category })
-    .then(() => {
-      alert("Word added successfully!");
-      document.getElementById("new-word").value = "";
-      document.getElementById("new-tr").value = "";
-      document.getElementById("new-example").value = "";
-      document.getElementById("new-category").value = "";
-    })
-    .catch((error) => {
-      console.error("Error adding document: ", error);
-      alert("Error adding word.");
-    });
-};
-</script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
-
-<script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBiEB9J0OIr9hPGR_NB0U13wrjA0QBF7sk",
-      authDomain: "word-machine-547d3.firebaseapp.com",
-      projectId: "word-machine-547d3",
-      storageBucket: "word-machine-547d3.firebasestorage.app",
-      messagingSenderId: "537964257136",
-      appId: "1:537964257136:web:045c49422b46541af1b9b5",
-      measurementId: "G-2ST0PGHT6K"
-    };
-
-    const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-    
-
-    let gameWords = [];
-    let currentCategory = "";
-    let currentWord = {};
-    let playerNames = ["", ""];
-    let scores = [0, 0];
-    let currentPlayer = 0;
-    let jokers = [3, 3];
-    let timerInterval;
-    let timeLeft = 10;
-    let roundCount = 0;
-    const maxRounds = 10;
-
-    window.addWordToFirebase = function () {
-      const word = document.getElementById("new-word").value;
-      const tr = document.getElementById("new-tr").value;
-      const example = document.getElementById("new-example").value;
-      const category = document.getElementById("new-category").value;
-
-      if (!word || !tr || !example || !category) {
-        alert("Please fill all fields.");
-        return;
-      }
-
-      db.collection("words").add({ word, tr, example, category })
-  
-    };
-
-    function nextWord() {
-      roundCount++;
-      if (roundCount > maxRounds) {
-        clearInterval(timerInterval);
-        alert(`🎉 Game Over! Final Score:
-${playerNames[0]}: ${scores[0]}
-${playerNames[1]}: ${scores[1]}`);
-        return;
-      }
-
-      clearInterval(timerInterval);
-      timeLeft = 10;
-      document.getElementById("timer").innerText = `⏳ ${timeLeft}`;
-      timerInterval = setInterval(updateTimer, 1000);
-
-      if (gameWords.length === 0) {
-        alert("No words found in this category.");
-        document.getElementById("game-section").style.display = "none";
-        return;
-      }
-
-      currentWord = gameWords[Math.floor(Math.random() * gameWords.length)];
-      document.getElementById("word-box").innerText = currentWord.word;
-      document.getElementById("player-turn").innerText = `Your turn: ${playerNames[currentPlayer]}`;
-      document.getElementById("extra-info").innerText = "";
-      document.getElementById("joker-count").innerText = jokers[currentPlayer];
-    }
-
-    function updateTimer() {
-      timeLeft--;
-      document.getElementById("timer").innerText = `⏳ ${timeLeft}`;
-      if (timeLeft === 0) {
-        clearInterval(timerInterval);
-        window.iDontKnow();
-      }
-    }
-
-    window.iKnow = function () {
-      clearInterval(timerInterval);
-      let earnedPoints = [5, 10, 15, 20][Math.floor(Math.random() * 4)];
-      scores[currentPlayer] += earnedPoints;
-      const extraInfo = document.getElementById("extra-info");
-      extraInfo.innerText = `🎉 Great job! +${earnedPoints} points`;
-      document.getElementById("success-sound").play();
-      updateScoreboard();
-      switchPlayer();
-      nextWord();
-    };
-
-    window.iDontKnow = function () {
-      clearInterval(timerInterval);
-      document.getElementById("extra-info").innerText = `${currentWord.tr} - ${currentWord.example}`;
-      switchPlayer();
-      setTimeout(nextWord, 2000);
-    };
-
-    function switchPlayer() {
-      currentPlayer = (currentPlayer + 1) % 2;
-    }
-
-    function updateScoreboard() {
-      const text = `${playerNames[0]}: ${scores[0]} | ${playerNames[1]}: ${scores[1]}`;
-      document.getElementById("scoreboard").innerText = text;
-      document.getElementById("score-container").innerText = "Scoreboard: " + text;
-    }
-
-    window.useJoker = function () {
-      if (jokers[currentPlayer] > 0) {
-        jokers[currentPlayer]--;
-        document.getElementById("extra-info").innerText = `Hint: ${currentWord.tr}`;
-        document.getElementById("joker-count").innerText = jokers[currentPlayer];
-      } else {
-        document.getElementById("extra-info").innerText = "No jokers left!";
-      }
-    };
-
-</script>
 </head>
 <body>
   <div id="score-container">Scoreboard: Player 1: 0 | Player 2: 0</div>
   <h1>🎮 Word Machine</h1>
-  <div>
+
+  <div id="start-section">
     <input id="player1" placeholder="Player 1 Name" />
     <input id="player2" placeholder="Player 2 Name" />
-    <button onclick="startGame()">Start Game</button>
+    <button id="start-btn">Start Game</button>
   </div>
 
   <div id="category-section" style="display:none;">
     <h2>Select a Category:</h2>
-    <button onclick="chooseCategory('Nature')">🌳 Nature</button>
-    <button onclick="chooseCategory('Sports')">🏀 Sports</button>
-    <button onclick="chooseCategory('Animals')">🐾 Animals</button>
+    <button class="category-btn" data-cat="Nature">🌳 Nature</button>
+    <button class="category-btn" data-cat="Sports">🏀 Sports</button>
+    <button class="category-btn" data-cat="Animals">🐾 Animals</button>
   </div>
 
   <div id="game-section" style="display:none;">
     <div id="player-turn"></div>
     <div id="word-box">Waiting...</div>
     <div id="timer">⏳ 10</div>
-    <button onclick="iKnow()">✅ I Know</button>
-    <button onclick="iDontKnow()">❌ I Don't Know</button>
-    <button onclick="useJoker()">🃏 Use Joker (<span id="joker-count">3</span>)</button>
+    <button id="know-btn">✅ I Know</button>
+    <button id="dontknow-btn">❌ I Don't Know</button>
+    <button id="joker-btn">🃏 Use Joker (<span id="joker-count">3</span>)</button>
     <div id="extra-info"></div>
     <div id="scoreboard"></div>
   </div>
 
-  <div style="margin-top: 40px;">
+  <div id="word-form">
     <h2>➕ Add New Word</h2>
     <input id="new-word" placeholder="English Word" />
     <input id="new-tr" placeholder="Turkish Meaning" />
@@ -292,9 +119,155 @@ ${playerNames[1]}: ${scores[1]}`);
       <option value="Sports">🏀 Sports</option>
       <option value="Animals">🐾 Animals</option>
     </select>
-    <button onclick="window.addWordToFirebase()">📤 Add Word</button>
+    <button id="add-btn">📤 Add Word</button>
   </div>
 
   <audio id="success-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_6f5a1c3d0e.mp3"></audio>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const firebaseConfig = {
+        apiKey: "AIzaSyBiEB9J0OIr9hPGR_NB0U13wrjA0QBF7sk",
+        authDomain: "word-machine-547d3.firebaseapp.com",
+        projectId: "word-machine-547d3",
+        storageBucket: "word-machine-547d3.firebasestorage.app",
+        messagingSenderId: "537964257136",
+        appId: "1:537964257136:web:045c49422b46541af1b9b5",
+        measurementId: "G-2ST0PGHT6K"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      let gameWords = [];
+      let currentCategory = "";
+      let currentWord = {};
+      let playerNames = ["", ""];
+      let scores = [0, 0];
+      let currentPlayer = 0;
+      let jokers = [3, 3];
+      let timerInterval;
+      let timeLeft = 10;
+      let roundCount = 0;
+      const maxRounds = 10;
+
+      const startSection = document.getElementById('start-section');
+      const categorySection = document.getElementById('category-section');
+      const gameSection = document.getElementById('game-section');
+      const wordForm = document.getElementById('word-form');
+
+      document.getElementById('start-btn').addEventListener('click', startGame);
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', () => chooseCategory(btn.dataset.cat));
+      });
+      document.getElementById('know-btn').addEventListener('click', iKnow);
+      document.getElementById('dontknow-btn').addEventListener('click', iDontKnow);
+      document.getElementById('joker-btn').addEventListener('click', useJoker);
+      document.getElementById('add-btn').addEventListener('click', addWordToFirebase);
+
+      function startGame() {
+        playerNames[0] = document.getElementById("player1").value || "Player 1";
+        playerNames[1] = document.getElementById("player2").value || "Player 2";
+        startSection.style.display = 'none';
+        categorySection.style.display = 'block';
+      }
+
+      function chooseCategory(cat) {
+        currentCategory = cat;
+        categorySection.style.display = 'none';
+        gameSection.style.display = 'block';
+        gameWords = [];
+        roundCount = 0;
+        db.collection("words").where("category", "==", currentCategory).get()
+          .then(snapshot => {
+            snapshot.forEach(doc => gameWords.push(doc.data()));
+            if (!gameWords.length) {
+              alert("No words found in this category.");
+              gameSection.style.display = 'none';
+              startSection.style.display = 'block';
+              return;
+            }
+            nextWord();
+          })
+          .catch(err => console.error(err));
+      }
+
+      function nextWord() {
+        clearInterval(timerInterval);
+        roundCount++;
+        if (roundCount > maxRounds) {
+          alert(`🎉 Game Over! Final Score:\n${playerNames[0]}: ${scores[0]}\n${playerNames[1]}: ${scores[1]}`);
+          gameSection.style.display = 'none';
+          startSection.style.display = 'block';
+          return;
+        }
+        timeLeft = 10;
+        document.getElementById("timer").innerText = `⏳ ${timeLeft}`;
+        timerInterval = setInterval(updateTimer, 1000);
+        currentWord = gameWords[Math.floor(Math.random() * gameWords.length)];
+        document.getElementById("word-box").innerText = currentWord.word;
+        document.getElementById("player-turn").innerText = `Your turn: ${playerNames[currentPlayer]}`;
+        document.getElementById("extra-info").innerText = "";
+        document.getElementById("joker-count").innerText = jokers[currentPlayer];
+      }
+
+      function updateTimer() {
+        timeLeft--;
+        document.getElementById("timer").innerText = `⏳ ${timeLeft}`;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          iDontKnow();
+        }
+      }
+
+      function iKnow() {
+        clearInterval(timerInterval);
+        const earned = [5, 10, 15, 20][Math.floor(Math.random() * 4)];
+        scores[currentPlayer] += earned;
+        const info = document.getElementById("extra-info"); info.innerText = `🎉 +${earned} points!`;
+        document.getElementById("success-sound").play();
+        updateScoreboard();
+        switchPlayer();
+        setTimeout(nextWord, 500);
+      }
+
+      function iDontKnow() {
+        clearInterval(timerInterval);
+        document.getElementById("extra-info").innerText = `${currentWord.tr} - ${currentWord.example}`;
+        switchPlayer();
+        setTimeout(nextWord, 2000);
+      }
+
+      function switchPlayer() { currentPlayer = (currentPlayer + 1) % 2; }
+
+      function updateScoreboard() {
+        const txt = `${playerNames[0]}: ${scores[0]} | ${playerNames[1]}: ${scores[1]}`;
+        document.getElementById("scoreboard").innerText = txt;
+        document.getElementById("score-container").innerText = "Scoreboard: " + txt;
+      }
+
+      function useJoker() {
+        if (jokers[currentPlayer] > 0) {
+          jokers[currentPlayer]--;
+          document.getElementById("extra-info").innerText = `Hint: ${currentWord.tr}`;
+          document.getElementById("joker-count").innerText = jokers[currentPlayer];
+        } else {
+          document.getElementById("extra-info").innerText = "No jokers left!";
+        }
+      }
+
+      function addWordToFirebase() {
+        const word = document.getElementById("new-word").value;
+        const tr = document.getElementById("new-tr").value;
+        const example = document.getElementById("new-example").value;
+        const category = document.getElementById("new-category").value;
+        if (!word || !tr || !example || !category) { alert("Please fill all fields."); return; }
+        db.collection("words").add({ word, tr, example, category })
+          .then(() => { alert("Word added successfully!"); })
+          .catch(e => { console.error(e); alert("Error adding word."); });
+      }
+    });
+  </script>
 </body>
 </html>
