@@ -157,13 +157,17 @@
         scores[currentPlayer] += earned;
         document.getElementById('extra-info').innerText = `🎉 +${earned} points!`;
         document.getElementById('success-sound').play();
-        updateScoreboard(); switchPlayer(); setTimeout(nextWord, 500);
+        updateScoreboard(); switchPlayer(); categorySection.style.display = 'block';
+        gameSection.style.display = 'none';
       }
 
       function iDontKnow() {
         clearInterval(timerInterval);
         document.getElementById('extra-info').innerText = `${currentWord.tr} - ${currentWord.example}`;
-        switchPlayer(); setTimeout(nextWord, 2000);
+        switchPlayer(); setTimeout(() => {
+          categorySection.style.display = 'block';
+          gameSection.style.display = 'none';
+        }, 2000);
       }
 
       function useJoker() {
