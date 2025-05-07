@@ -151,22 +151,27 @@
         if (timeLeft <= 0) { clearInterval(timerInterval); iDontKnow(); }
       }
 
-      function iKnow() {
+            function iKnow() {
         clearInterval(timerInterval);
         const earned = [5, 10, 15, 20][Math.floor(Math.random() * 4)];
         scores[currentPlayer] += earned;
         document.getElementById('extra-info').innerText = `🎉 +${earned} points!`;
         document.getElementById('success-sound').play();
-        updateScoreboard(); switchPlayer(); categorySection.style.display = 'block';
+        updateScoreboard();
+        switchPlayer();
+        // After correct answer, return to category selection for next player
         gameSection.style.display = 'none';
+        categorySection.style.display = 'block';
       }
 
-      function iDontKnow() {
+            function iDontKnow() {
         clearInterval(timerInterval);
         document.getElementById('extra-info').innerText = `${currentWord.tr} - ${currentWord.example}`;
-        switchPlayer(); setTimeout(() => {
-          categorySection.style.display = 'block';
+        switchPlayer();
+        // Show category selection after delay
+        setTimeout(() => {
           gameSection.style.display = 'none';
+          categorySection.style.display = 'block';
         }, 2000);
       }
 
